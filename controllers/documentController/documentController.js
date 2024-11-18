@@ -35,7 +35,7 @@ exports.createDocument = async (req, res) => {
             error: "La fecha de vigencia debe ser válida y posterior o igual a la fecha actual.",
         });
     }
-
+    await Document.deleteMany({ title: sanitizedTitle })
     try {
         // Obtener la última versión del documento
         const latestDoc = await Document.findOne({ title: sanitizedTitle }).sort({ version: -1 });
