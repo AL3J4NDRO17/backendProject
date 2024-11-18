@@ -10,11 +10,19 @@ const {
   getLogoHistory, 
   updateLogo,
   activateLogo,
+  getCurrentLogo,
+  deleteLogo, 
+  getHomePageConfigs
 } = require('../controllers/frontController/frontController');
 
 router.get('/getConfig', getAllConfigFront);
 
 router.get('/logoHistory', getLogoHistory);
+
+router.get('/currentLogo',getCurrentLogo ); // Prefijo para todas las rutas relacionadas con logos
+
+router.get('/homePageConfigs',getHomePageConfigs ); // Prefijo para todas las rutas relacionadas con logos
+
 
 router.get('/:type',
   param('type').notEmpty().withMessage('El tipo es obligatorio'),
@@ -30,6 +38,8 @@ router.put('/updateData',
   body('value').notEmpty().withMessage('El valor es obligatorio'),
   updateConfigFront
 );
+
+router.delete('/deleteLogo', deleteLogo);
 
 router.delete('/:type',
   param('type').notEmpty().withMessage('El tipo es obligatorio'),

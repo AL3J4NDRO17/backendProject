@@ -84,6 +84,13 @@ router.get(
     documentController.getAllDocuments
 );
 
+router.get(
+    '/getDocumentsUser',
+    documentController.getAllDocumentsUser
+);
+
+
+
 // Ruta para buscar documentos por término de búsqueda
 router.get(
     '/search',

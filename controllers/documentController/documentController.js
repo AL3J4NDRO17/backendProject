@@ -6,33 +6,42 @@ const { DeslindeLegal, PoliticPrivacy, TermsAndCondition } = require('../../mode
 const mongoose = require('mongoose');
 
 exports.createDocument = async (req, res) => {
+    // Validar si hay errores de los campos requeridos
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
 
+    // Verificar que todos los campos requeridos están presentes
+    const { title, content, author, validUntil } = req.body;
+    console.log(req.body)
+    if (!title || !content || !author || !validUntil) {
+        return res.status(400).json({ 
+            error: "Todos los campos (título, contenido, autor y fecha de vigencia) son obligatorios." 
+        });
+    }
+
     // Sanitizar los datos
-    const sanitizedTitle = xss(req.body.title);
-    const sanitizedContent = xss(req.body.content);
-    const sanitizedAuthor = xss(req.body.author);
-    const sanitizedValidUntil = xss(req.body.validUntil);
+    const sanitizedTitle = xss(title);
+    const sanitizedContent = xss(content);
+    const sanitizedAuthor = xss(author);
+    const sanitizedValidUntil = xss(validUntil);
 
     // Validar fecha válida
     const today = new Date();
     const validUntilDate = new Date(sanitizedValidUntil);
-
-    if (validUntilDate < today) {
+    if (isNaN(validUntilDate.getTime()) || validUntilDate < today) {
         return res.status(400).json({
-            error: "La fecha de vigencia debe ser posterior o igual a la fecha actual.",
+            error: "La fecha de vigencia debe ser válida y posterior o igual a la fecha actual.",
         });
     }
-    await Document.deleteMany({ title: sanitizedTitle });
+
     try {
-        // Obtener la última versión
+        // Obtener la última versión del documento
         const latestDoc = await Document.findOne({ title: sanitizedTitle }).sort({ version: -1 });
         const version = latestDoc ? (parseFloat(latestDoc.version) + 1).toFixed(1) : "1.0";
 
-        // Crear nuevo documento
+        // Crear un nuevo documento
         const newDocument = new Document({
             title: sanitizedTitle,
             content: sanitizedContent,
@@ -49,27 +58,12 @@ exports.createDocument = async (req, res) => {
         res.status(201).json({ msg: 'Documento creado con éxito', document: newDocument });
     } catch (error) {
         console.error("Error al crear documento:", error);
-        res.status(400).json({ error: 'Error al crear el documento' });
+        res.status(500).json({ error: 'Error al crear el documento' });
     }
 };
+
 
 // Obtener un documento por su ID
-exports.getDocumentById = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const document = await Document.findById(id);
-
-        if (!document) {
-            return res.status(404).json({ error: 'Documento no encontrado' });
-        }
-
-        res.status(200).json(document);
-    } catch (error) {
-        console.error("Error al obtener el documento:", error);
-        res.status(500).json({ error: 'Error al obtener el documento' });
-    }
-};
 
 // Modificar un documento regulatorio y crear una nueva versión
 exports.updateDocument = async (req, res) => {
@@ -152,6 +146,22 @@ exports.updateDocument = async (req, res) => {
 };
 
 
+exports.getDocumentById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const document = await Document.findById(id);
+
+        if (!document) {
+            return res.status(404).json({ error: 'Documento no encontrado' });
+        }
+
+        res.status(200).json(document);
+    } catch (error) {
+        console.error("Error al obtener el documento:", error);
+        res.status(500).json({ error: 'Error al obtener el documento' });
+    }
+};
 
 // Marcar un documento como eliminado (lógico)
 exports.deleteDocument = async (req, res) => {
@@ -281,6 +291,22 @@ exports.getAllDocuments = async (req, res) => {
 
         // Registro de auditoría
         await logAudit(req.user.id, 'VIEW_ALL', 'Documentos', { action: 'Obtener todos los documentos' });
+
+        // Respuesta con todos los documentos
+        res.status(200).json({
+            documents,
+            totalDocuments: documents.length, // Total de documentos
+        });
+    } catch (error) {
+        console.error("Error al obtener documentos:", error);
+        res.status(500).json({ msg: "Error al obtener documentos" });
+    }
+};
+
+exports.getAllDocumentsUser = async (req, res) => {
+    try {
+        // Obtener todos los documentos excluyendo los eliminados
+        const documents = await Document.find();
 
         // Respuesta con todos los documentos
         res.status(200).json({
