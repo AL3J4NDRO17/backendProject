@@ -55,7 +55,13 @@ app.use(cors({
     credentials: true,               // Permite el envío de cookies si es necesario
 }));
 
-const csrfProtection = csrf({ cookie: true });
+const csrfProtection = csrf(csrf({
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // Solo en producción
+        sameSite: 'strict', // Ajusta según sea necesario
+    },
+}));
 app.use(csrfProtection);
 
 app.get('/api/get-csrf-token', (req, res) => {
