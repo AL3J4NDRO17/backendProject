@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de cuenta</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #40b3a2;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            color: white;
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+            text-align: center;
+        }
+        .welcome-text {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 25px;
+        }
+        .verification-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #40b3a2;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .verification-button:hover {
+            background-color: #368f82;
+        }
+        .alternative-link {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            word-break: break-all;
+            font-size: 14px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666666;
+            font-size: 14px;
+            border-top: 1px solid #eeeeee;
+        }
+        .contact-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+        }
+        .important-note {
+            color: #666666;
+            font-size: 13px;
+            font-style: italic;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Centro de Fisioterapia y Rehabilitación</h1>
+        </div>
+        <div class="content">
+            <p class="welcome-text">¡Hola ${nombreCompleto}!</p>
+            
+            <h2>${activationMessage}</h2>
+            
+            <p>Gracias por registrarte en nuestro centro. Para comenzar a utilizar nuestros servicios, necesitamos verificar tu dirección de correo electrónico.</p>
+            
+            <a href="${verificationLink}" class="verification-button">
+                Verificar mi cuenta
+            </a>
+            
+            <div class="alternative-link">
+                <p>Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
+                <p>${verificationLink}</p>
+            </div>
+            
+            <div class="important-note">
+                <p>Este enlace expirará en ${tokenLifetime} minutos por razones de seguridad.</p>
+                <p>Si no has solicitado esta verificación, puedes ignorar este mensaje.</p>
+            </div>
+            
+            <div class="contact-info">
+                <p>¿Necesitas ayuda? Contáctanos:</p>
+                <p>Teléfono: [Tu número de teléfono]</p>
+                <p>Email: [Tu correo de soporte]</p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>Este es un mensaje automático, por favor no respondas a este correo.</p>
+            <p>© ${new Date().getFullYear()} Centro de Fisioterapia y Rehabilitación. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

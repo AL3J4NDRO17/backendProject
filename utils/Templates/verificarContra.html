@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecimiento de Contraseña</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #40b3a2;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            color: white;
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+            text-align: center;
+        }
+        .verification-code {
+            font-size: 24px;
+            color: #333333;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .important-note {
+            color: #666666;
+            font-size: 13px;
+            font-style: italic;
+            margin-top: 15px;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666666;
+            font-size: 14px;
+            border-top: 1px solid #eeeeee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Centro de Fisioterapia y Rehabilitación</h1>
+        </div>
+        <div class="content">
+            <p>Hola,</p>
+            <p>Has solicitado restablecer tu contraseña. Usa el siguiente código para completar el proceso:</p>
+            <p class="verification-code">${resetCode}</p>
+            <p class="important-note">Este código expirará en 1 hora por razones de seguridad.</p>
+            <p>Si no has solicitado este restablecimiento, ignora este mensaje.</p>
+        </div>
+        <div class="footer">
+            <p>Este es un mensaje automático, por favor no respondas a este correo.</p>
+            <p>© ${new Date().getFullYear()} Centro de Fisioterapia y Rehabilitación. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>
