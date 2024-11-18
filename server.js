@@ -62,7 +62,7 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production', // Solo en producción
-      sameSite: 'strict', // Ajusta según sea necesario
+      sameSite: 'none', // Ajusta según sea necesario
     },
   })
 );
