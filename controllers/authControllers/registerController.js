@@ -42,7 +42,7 @@ exports.register = async (req, res) => {
             console.error("reCAPTCHA falló:", captchaResponse.data["error-codes"]);
             return res.status(400).json({ msg: "Falló la verificación de CAPTCHA", details: captchaResponse.data["error-codes"] });
         }
-        const user = await User.findOne({ correo });
+        let user = await User.findOne({ correo });
         if (user) return res.status(400).json({ msg: "El correo ya está registrado" });
 
         // Verificar si el usuario ya existe
