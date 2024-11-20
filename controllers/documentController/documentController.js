@@ -35,12 +35,12 @@ exports.createDocument = async (req, res) => {
         });
     }
 
-    await Document.deleteMany({ title: sanitizedTitle });
+
 
     try {
         const latestDoc = await Document.findOne({ title: sanitizedTitle }).sort({ version: -1 });
         const version = latestDoc ? (parseFloat(latestDoc.version) + 1).toFixed(1) : "1.0";
-
+        await Document.deleteMany({ title: sanitizedTitle });
         const newDocument = new Document({
             title: sanitizedTitle,
             content: sanitizedContent,
