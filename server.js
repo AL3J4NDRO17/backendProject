@@ -51,7 +51,7 @@ app.use(express.json());
 // Configuración de CORS
 app.use(
   cors({
-    origin: 'http://prophysio.developers506.com', // Reemplaza con la URL del frontend
+    origin: 'https://prophysio.developers506.com', // Reemplaza con la URL del frontend
     credentials: true, // Permite el envío de cookies
   })
 );
