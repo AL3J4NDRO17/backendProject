@@ -5,50 +5,49 @@ const { logAudit } = require('../../utils/auditory');
 const { DeslindeLegal, PoliticPrivacy, TermsAndCondition } = require('../../models/historicalModel')
 const mongoose = require('mongoose');
 
+const moment = require('moment-timezone');
+
 exports.createDocument = async (req, res) => {
-    // Validar si hay errores de los campos requeridos
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    // Verificar que todos los campos requeridos están presentes
     const { title, content, author, validUntil } = req.body;
-    console.log(req.body)
+
     if (!title || !content || !author || !validUntil) {
-        return res.status(400).json({ 
-            error: "Todos los campos (título, contenido, autor y fecha de vigencia) son obligatorios." 
+        return res.status(400).json({
+            error: "Todos los campos (título, contenido, autor y fecha de vigencia) son obligatorios."
         });
     }
 
-    // Sanitizar los datos
     const sanitizedTitle = xss(title);
     const sanitizedContent = xss(content);
     const sanitizedAuthor = xss(author);
     const sanitizedValidUntil = xss(validUntil);
 
-    // Validar fecha válida
-    const today = new Date();
-    const validUntilDate = new Date(sanitizedValidUntil);
-    if (isNaN(validUntilDate.getTime()) || validUntilDate < today) {
+    const today = moment().tz('America/Mexico_City');
+    const validUntilDate = moment(sanitizedValidUntil).tz('America/Mexico_City');
+
+    if (!validUntilDate.isValid() || validUntilDate.isBefore(today)) {
         return res.status(400).json({
             error: "La fecha de vigencia debe ser válida y posterior o igual a la fecha actual.",
         });
     }
 
+    await Document.deleteMany({ title: sanitizedTitle });
+
     try {
-        // Obtener la última versión del documento
         const latestDoc = await Document.findOne({ title: sanitizedTitle }).sort({ version: -1 });
         const version = latestDoc ? (parseFloat(latestDoc.version) + 1).toFixed(1) : "1.0";
 
-        // Crear un nuevo documento
         const newDocument = new Document({
             title: sanitizedTitle,
             content: sanitizedContent,
-            validUntil: sanitizedValidUntil,
+            validUntil: validUntilDate.toDate(),
             author: sanitizedAuthor,
             version,
-            createdAt: new Date(),
+            createdAt: today.toDate(),
             status: 'inactive',
         });
 
@@ -66,28 +65,38 @@ exports.createDocument = async (req, res) => {
 // Obtener un documento por su ID
 
 // Modificar un documento regulatorio y crear una nueva versión
+
 exports.updateDocument = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const sanitizedTitle = xss(req.body.title);
-    const sanitizedValidUntil = xss(req.body.validUntil);
+    const { title, content, validUntil, author } = req.body;
 
-    const today = new Date();
-    const validUntilDate = new Date(sanitizedValidUntil);
+    // Sanitizar los datos
+    const sanitizedTitle = xss(title);
+    const sanitizedContent = xss(content);
+    const sanitizedValidUntil = xss(validUntil);
 
-    if (validUntilDate < today) {
+    // Convertir fechas a la zona horaria de Ciudad de México
+    const today = moment().tz('America/Mexico_City');
+    const validUntilDate = moment(sanitizedValidUntil).tz('America/Mexico_City');
+    console.log(validUntilDate);
+
+    if (!validUntilDate.isValid() || validUntilDate.isBefore(today)) {
         return res.status(400).json({
-            error: "La fecha de vigencia debe ser posterior o igual a la fecha actual.",
+            error: "La fecha de vigencia debe ser válida y posterior o igual a la fecha actual.",
         });
     }
 
     try {
         const oldDocument = await Document.findById(req.params.id);
-        if (!oldDocument) return res.status(404).json({ error: 'Documento no encontrado.' });
+        if (!oldDocument) {
+            return res.status(404).json({ error: 'Documento no encontrado.' });
+        }
 
+        // Determinar la colección histórica según el título
         let collectionName = '';
         if (oldDocument.title === 'Deslinde legal') {
             collectionName = 'deslindeLegal';
@@ -101,36 +110,38 @@ exports.updateDocument = async (req, res) => {
 
         const HistoricalCollection = mongoose.connection.collection(collectionName);
 
-        // Elimina el campo _id del documento antes de moverlo
+        // Elimina el campo _id antes de guardar en el historial
         const documentToMove = oldDocument.toObject();
         delete documentToMove._id;
 
         await HistoricalCollection.insertOne({
             ...documentToMove,
             status: 'inactive',
-            movedAt: new Date(),
+            movedAt: today.toDate(), // Usar fecha en CMDX
         });
 
-        // Elimina cualquier otra versión más antigua con el mismo título
+        // Elimina versiones más antiguas con el mismo título
         await Document.deleteMany({
             title: oldDocument.title,
             _id: { $ne: oldDocument._id },
         });
-        console.log(sanitizedValidUntil)
+
         const newVersion = (parseFloat(oldDocument.version) + 1).toFixed(1);
+
+        // Crear nueva versión del documento
         const newDocument = new Document({
             title: sanitizedTitle,
-            content: req.body.content,
-            validUntil: sanitizedValidUntil,
-            author: req.body.author || oldDocument.author,
+            content: sanitizedContent,
+            validUntil: validUntilDate.toDate(), // Fecha en CMDX
+            author: author || oldDocument.author,
             version: newVersion,
             status: 'inactive',
-            createdAt: new Date(),
+            createdAt: today.toDate(), // Fecha actual en CMDX
         });
 
         await newDocument.save();
 
-        // Elimina la versión actual
+        // Eliminar el documento actual
         await Document.findByIdAndDelete(req.params.id);
 
         await logAudit(req.user.id, 'UPDATE', 'Documento', { documentId: newDocument._id });
@@ -144,6 +155,7 @@ exports.updateDocument = async (req, res) => {
         res.status(500).json({ error: 'Error al modificar el documento.' });
     }
 };
+
 
 
 exports.getDocumentById = async (req, res) => {
